@@ -1,0 +1,74 @@
+/* Reset */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Background */
+.app-container {
+  height: 100vh;
+  background: linear-gradient(to right, #4facfe, #00f2fe);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card */
+.card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Inputs */
+.input-field {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background: #4facfe;
+  color: white;
+}
+
+.btn-secondary {
+  background: #00c6ff;
+  color: white;
+}
+
+/* Links */
+.link-btn {
+  margin-top: 10px;
+  display: block;
+  color: #4facfe;
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  text-align: left;
+  margin-top: -5px;
+  margin-bottom: 5px;
+}
+
+.input-error {
+  border: 1px solid red;
+}
