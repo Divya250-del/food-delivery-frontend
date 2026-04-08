@@ -1,26 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { registerUser } from "../api/authApi";
 
 function Signup() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    emailOrPhone: "",
-    username: "",
+    email: "",
+    name: "",
+    phone: "",
     password: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
+  // ✅ Validation (production-style basic validation)
   const validate = () => {
     let newErrors = {};
 
-    if (!formData.emailOrPhone) {
-      newErrors.emailOrPhone = "Email or Phone is required";
+    if (!formData.email) {
+      newErrors.email = "Email is required";
     }
 
-    if (!formData.username) {
-      newErrors.username = "Username is required";
+    if (!formData.name) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.phone) {
+      newErrors.phone = "Phone is required";
     }
 
     if (!formData.password) {
@@ -32,20 +40,23 @@ function Signup() {
     return newErrors;
   };
 
+  // ✅ Handle Input Change
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
 
-    // remove error while typing
+    // remove field error while typing
     setErrors({
       ...errors,
       [e.target.name]: "",
+      apiError: "",
     });
   };
 
-  const handleSubmit = (e) => {
+  // ✅ Handle Submit (API Integration)
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const validationErrors = validate();
@@ -55,9 +66,28 @@ function Signup() {
       return;
     }
 
-    console.log("Signup Data:", formData);
+    try {
+      setLoading(true);
 
-    navigate("/signin");
+      const response = await registerUser(formData);
+
+      console.log("Signup Success:", response);
+
+      // ✅ redirect after success
+      navigate("/signin");
+
+    } catch (error) {
+      console.error("Signup Error:", error);
+
+      setErrors({
+        apiError:
+          error?.error?.message || // your ApiResponse format
+          error?.message ||
+          "Something went wrong",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,24 +96,37 @@ function Signup() {
         <h2>Sign Up</h2>
 
         <form onSubmit={handleSubmit}>
+          {/* Email */}
           <input
-            className={`input-field ${errors.emailOrPhone ? "input-error" : ""}`}
-            name="emailOrPhone"
-            placeholder="Email or Phone"
-            value={formData.emailOrPhone}
+            className={`input-field ${errors.email ? "input-error" : ""}`}
+            name="email"
+            placeholder="Email"
+            value={formData.email}
             onChange={handleChange}
           />
-          {errors.emailOrPhone && <p className="error">{errors.emailOrPhone}</p>}
+          {errors.email && <p className="error">{errors.email}</p>}
 
+          {/* Name */}
           <input
-            className={`input-field ${errors.username ? "input-error" : ""}`}
-            name="username"
-            placeholder="Username"
-            value={formData.username}
+            className={`input-field ${errors.name ? "input-error" : ""}`}
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
             onChange={handleChange}
           />
-          {errors.username && <p className="error">{errors.username}</p>}
+          {errors.name && <p className="error">{errors.name}</p>}
 
+          {/* Phone */}
+          <input
+            className={`input-field ${errors.phone ? "input-error" : ""}`}
+            name="phone"
+            placeholder="Phone"
+            value={formData.phone}
+            onChange={handleChange}
+          />
+          {errors.phone && <p className="error">{errors.phone}</p>}
+
+          {/* Password */}
           <input
             type="password"
             className={`input-field ${errors.password ? "input-error" : ""}`}
@@ -94,7 +137,13 @@ function Signup() {
           />
           {errors.password && <p className="error">{errors.password}</p>}
 
-          <button className="btn btn-primary">Register</button>
+          {/* API Error */}
+          {errors.apiError && <p className="error">{errors.apiError}</p>}
+
+          {/* Button */}
+          <button className="btn btn-primary" disabled={loading}>
+            {loading ? "Registering..." : "Register"}
+          </button>
         </form>
       </div>
     </div>
