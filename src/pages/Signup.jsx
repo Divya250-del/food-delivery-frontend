@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { registerUser } from "../api/authApi";
 
 function Signup() {
@@ -15,75 +15,38 @@ function Signup() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  // ✅ Validation (production-style basic validation)
   const validate = () => {
     let newErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    }
-
-    if (!formData.name) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.phone) {
-      newErrors.phone = "Phone is required";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.name) newErrors.name = "Name is required";
+    if (!formData.phone) newErrors.phone = "Phone is required";
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (formData.password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
-    }
-
     return newErrors;
   };
 
-  // ✅ Handle Input Change
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-
-    // remove field error while typing
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-      apiError: "",
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "", apiError: "" });
   };
 
-  // ✅ Handle Submit (API Integration)
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const validationErrors = validate();
-
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
     try {
       setLoading(true);
-
       const response = await registerUser(formData);
-
       console.log("Signup Success:", response);
-
-      // ✅ redirect after success
       navigate("/signin");
-
     } catch (error) {
-      console.error("Signup Error:", error);
-
       setErrors({
         apiError:
-          error?.error?.message || // your ApiResponse format
-          error?.message ||
-          "Something went wrong",
+          error?.error?.message || error?.message || "Something went wrong",
       });
     } finally {
       setLoading(false);
@@ -91,59 +54,112 @@ function Signup() {
   };
 
   return (
-    <div className="app-container">
-      <div className="card">
-        <h2>Sign Up</h2>
+    <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4">
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8">
 
-        <form onSubmit={handleSubmit}>
+        {/* Logo */}
+        <h1 className="text-center text-2xl font-medium mb-1">
+          <span className="text-orange-500">Food</span>ie
+        </h1>
+        <p className="text-center text-gray-400 text-sm mb-8">
+          Create your account
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+
           {/* Email */}
-          <input
-            className={`input-field ${errors.email ? "input-error" : ""}`}
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          {errors.email && <p className="error">{errors.email}</p>}
+          <div>
+            <input
+              name="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
+                ${errors.email
+                  ? "border-red-400 bg-red-50 focus:border-red-400"
+                  : "border-gray-200 focus:border-orange-400"}`}
+            />
+            {errors.email && (
+              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
 
-          {/* Name */}
-          <input
-            className={`input-field ${errors.name ? "input-error" : ""}`}
-            name="name"
-            placeholder="Full Name"
-            value={formData.name}
-            onChange={handleChange}
-          />
-          {errors.name && <p className="error">{errors.name}</p>}
+          {/* Full Name */}
+          <div>
+            <input
+              name="name"
+              placeholder="Full Name"
+              value={formData.name}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
+                ${errors.name
+                  ? "border-red-400 bg-red-50 focus:border-red-400"
+                  : "border-gray-200 focus:border-orange-400"}`}
+            />
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            )}
+          </div>
 
           {/* Phone */}
-          <input
-            className={`input-field ${errors.phone ? "input-error" : ""}`}
-            name="phone"
-            placeholder="Phone"
-            value={formData.phone}
-            onChange={handleChange}
-          />
-          {errors.phone && <p className="error">{errors.phone}</p>}
+          <div>
+            <input
+              name="phone"
+              placeholder="Phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
+                ${errors.phone
+                  ? "border-red-400 bg-red-50 focus:border-red-400"
+                  : "border-gray-200 focus:border-orange-400"}`}
+            />
+            {errors.phone && (
+              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
+            )}
+          </div>
 
           {/* Password */}
-          <input
-            type="password"
-            className={`input-field ${errors.password ? "input-error" : ""}`}
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          {errors.password && <p className="error">{errors.password}</p>}
+          <div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
+                ${errors.password
+                  ? "border-red-400 bg-red-50 focus:border-red-400"
+                  : "border-gray-200 focus:border-orange-400"}`}
+            />
+            {errors.password && (
+              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+            )}
+          </div>
 
           {/* API Error */}
-          {errors.apiError && <p className="error">{errors.apiError}</p>}
+          {errors.apiError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+              <p className="text-red-500 text-sm">{errors.apiError}</p>
+            </div>
+          )}
 
-          {/* Button */}
-          <button className="btn btn-primary" disabled={loading}>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+          >
             {loading ? "Registering..." : "Register"}
           </button>
+
+          {/* Sign in link */}
+          <p className="text-center text-sm text-gray-400 mt-2">
+            Already have an account?{" "}
+            <Link to="/signin" className="text-orange-500 hover:underline font-medium">
+              Sign In
+            </Link>
+          </p>
+
         </form>
       </div>
     </div>
