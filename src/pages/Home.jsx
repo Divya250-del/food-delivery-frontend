@@ -1,7 +1,9 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Link, useNavigate } from "react-router-dom";
+import { getAllRestaurants } from "../api/authApi";
 
+// ... DISHES array stays same ...
 const DISHES = [
   { id: 1, name: "Pizza", emoji: "🍕" },
   { id: 2, name: "Burger", emoji: "🍔" },
@@ -15,22 +17,32 @@ const DISHES = [
   { id: 10, name: "Sandwich", emoji: "🥪" },
 ];
 
-const DUMMY_RESTAURANTS = [
-  { id: 1, name: "Pizza Palace", cuisine: "Italian", rating: "4.5★", delivery: "25 min", icon: "🍕" },
-  { id: 2, name: "Burger Barn", cuisine: "American", rating: "4.3★", delivery: "20 min", icon: "🍔" },
-  { id: 3, name: "Noodle House", cuisine: "Asian", rating: "4.7★", delivery: "30 min", icon: "🍜" },
-  { id: 4, name: "Spice Garden", cuisine: "Indian", rating: "4.6★", delivery: "35 min", icon: "🍛" },
-  { id: 5, name: "Taco Town", cuisine: "Mexican", rating: "4.2★", delivery: "22 min", icon: "🌮" },
-  { id: 6, name: "Sushi Stop", cuisine: "Japanese", rating: "4.8★", delivery: "40 min", icon: "🍣" },
-];
-
 const Home = () => {
   const role = localStorage.getItem("role");
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const restaurantsRef = useRef(null);
   const navigate = useNavigate();
 
+  const [restaurants, setRestaurants] = useState([]);
+  const [loadingRestaurants, setLoadingRestaurants] = useState(false);
+  const [restaurantError, setRestaurantError] = useState("");
+
+  const fetchRestaurants = async () => {
+    try {
+      setLoadingRestaurants(true);
+      const response = await getAllRestaurants();
+      console.log("Restaurants →", response); // verify structure
+      setRestaurants(response?.data || response || []);
+    } catch (error) {
+      console.error("Error fetching restaurants →", error);
+      setRestaurantError("Failed to load restaurants");
+    } finally {
+      setLoadingRestaurants(false);
+    }
+  };
+
   const handleBrowse = () => {
+    fetchRestaurants();
     restaurantsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -42,10 +54,8 @@ const Home = () => {
     <div className="min-h-screen">
       <Navbar isLoggedIn={isLoggedIn} role={role} />
 
-      {/* Hero Section */}
+      {/* Hero Section — unchanged */}
       <div className="flex items-center justify-between px-10 py-16 bg-orange-50 min-h-[480px]">
-
-        {/* Left Text */}
         <div className="max-w-xl">
           <span className="inline-block bg-orange-100 text-orange-800 text-xs font-medium px-3 py-1 rounded-full mb-5">
             🍽 Order food you love
@@ -73,7 +83,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Right Food Cards */}
+        {/* Right Food Cards — unchanged */}
         <div className="flex flex-col gap-3 min-w-[260px]">
           {[
             { icon: "🍕", name: "Margherita Pizza", rest: "Pizza Palace", price: "₹299" },
@@ -94,7 +104,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Stats Bar */}
+      {/* Stats Bar — unchanged */}
       <div className="flex bg-gray-50 border-t border-gray-100">
         {[
           { num: "500+", label: "Restaurants" },
@@ -109,7 +119,7 @@ const Home = () => {
         ))}
       </div>
 
-      {/* What's on your mind — Dish Categories */}
+      {/* Dish Categories — unchanged */}
       <div className="px-10 py-12 bg-white border-b border-gray-100">
         <h2 className="text-xl font-medium mb-8">What's on your mind?</h2>
         <div className="grid grid-cols-5 gap-6">
@@ -139,33 +149,64 @@ const Home = () => {
           Explore restaurants and order your favourite food
         </p>
 
-        <div className="grid grid-cols-3 gap-5">
-          {DUMMY_RESTAURANTS.map((r) => (
-            <div
-              key={r.id}
-              className="border border-gray-100 rounded-2xl p-5 hover:shadow-md hover:border-orange-200 transition cursor-pointer"
-            >
-              <div className="w-full h-28 bg-orange-50 rounded-xl flex items-center justify-center text-5xl mb-4">
-                {r.icon}
-              </div>
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm font-medium">{r.name}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{r.cuisine}</p>
+        {/* Loading */}
+        {loadingRestaurants && (
+          <div className="flex justify-center py-16">
+            <p className="text-gray-400 text-sm">Loading restaurants...</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {restaurantError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+            <p className="text-red-500 text-sm">{restaurantError}</p>
+          </div>
+        )}
+
+        {/* Empty state — before Browse is clicked */}
+        {!loadingRestaurants && restaurants.length === 0 && !restaurantError && (
+          <div className="text-center py-16">
+            <p className="text-4xl mb-4">🍽</p>
+            <p className="text-gray-400 text-sm">
+              Click "Browse Restaurants" to see all restaurants
+            </p>
+          </div>
+        )}
+
+        {/* Restaurant Grid */}
+        {!loadingRestaurants && restaurants.length > 0 && (
+          <div className="grid grid-cols-3 gap-5">
+            {restaurants.map((r) => (
+              <div
+                key={r.id}
+                className="border border-gray-100 rounded-2xl p-5 hover:shadow-md hover:border-orange-200 transition cursor-pointer"
+              >
+                <div className="w-full h-28 bg-orange-50 rounded-xl flex items-center justify-center text-5xl mb-4">
+                  🍽
                 </div>
-                <span className="text-xs bg-green-50 text-green-600 font-medium px-2 py-0.5 rounded-full">
-                  {r.rating}
-                </span>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm font-medium">{r.name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{r.address}</p>
+                  </div>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    r.active
+                      ? "bg-green-50 text-green-600"
+                      : "bg-gray-100 text-gray-400"
+                  }`}>
+                    {r.active ? "Open" : "Closed"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+                  <p className="text-xs text-gray-400 truncate max-w-[60%]">{r.description || "—"}</p>
+                  <button className="text-xs text-orange-500 font-medium hover:underline">
+                    View Menu →
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-                <p className="text-xs text-gray-400">🕐 {r.delivery}</p>
-                <button className="text-xs text-orange-500 font-medium hover:underline">
-                  View Menu →
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

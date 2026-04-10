@@ -40,3 +40,7 @@ export const addDish = (data) => {
     headers: { Authorization: `Bearer ${token}` },
   }).then((res) => res.data);
 };
+
+export const getAllRestaurants = () => {
+  return API.get("/api/restaurants").then((res) => res.data);
+};
