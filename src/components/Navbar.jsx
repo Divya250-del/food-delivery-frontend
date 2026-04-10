@@ -27,7 +27,7 @@ const Navbar = ({ isLoggedIn, role }) => {
           </>
         ) : (
           <div className="flex gap-3 items-center">
-            {role === "OWNER" && (
+            {(
               <>
                 <Link to="/my-restaurant">
                   <button className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">

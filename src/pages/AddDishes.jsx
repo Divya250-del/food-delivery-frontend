@@ -1,9 +1,15 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { addDish } from "../api/authApi";
 
 const AddDishes = () => {
   const role = localStorage.getItem("role");
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  const [searchParams] = useSearchParams();
+
+  // get restaurantId from URL or localStorage
+  const restaurantId = localStorage.getItem("restaurantId");
 
   const [dish, setDish] = useState({
     name: "",
@@ -14,9 +20,10 @@ const AddDishes = () => {
     isAvailable: "true",
   });
   const [dishes, setDishes] = useState(() => {
-  return JSON.parse(localStorage.getItem("dishes") || "[]");
-});
+    return JSON.parse(localStorage.getItem("dishes") || "[]");
+  });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     let newErrors = {};
@@ -32,20 +39,55 @@ const AddDishes = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-    const handleAddDish = (e) => {
+  const handleAddDish = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
-        setErrors(validationErrors);
-        return;
+      setErrors(validationErrors);
+      return;
     }
-    const newDish = { ...dish, id: Date.now() };
-    const existingDishes = JSON.parse(localStorage.getItem("dishes") || "[]");
-    const updatedDishes = [...existingDishes, newDish];
-    localStorage.setItem("dishes", JSON.stringify(updatedDishes));
-    setDishes(updatedDishes);
-    setDish({ name: "", description: "", price: "", category: "", isVeg: "", isAvailable: "true" });
-    };
+
+    try {
+      setLoading(true);
+
+      // ✅ Exact payload matching your Postman
+      const payload = {
+        name: dish.name,
+        description: dish.description,
+        price: Number(dish.price),         // backend expects number not string
+        isVeg: dish.isVeg === "true",      // backend expects boolean not string
+        isAvailable: dish.isAvailable === "true",
+        restaurantId:restaurantId
+      };
+
+      console.log("Dish Payload →", payload);
+
+      const response = await addDish(payload);
+      console.log("Dish Response →", response);
+
+      // save to localStorage for MyRestaurant page
+      const newDish = { ...payload, id: response?.data?.id || Date.now(), category: dish.category };
+      const existingDishes = JSON.parse(localStorage.getItem("dishes") || "[]");
+      const updatedDishes = [...existingDishes, newDish];
+      localStorage.setItem("dishes", JSON.stringify(updatedDishes));
+      setDishes(updatedDishes);
+
+      // reset form
+      setDish({ name: "", description: "", price: "", category: "", isVeg: "", isAvailable: "true" });
+
+    } catch (error) {
+      console.error("Add Dish Error →", error);
+      setErrors({
+        apiError:
+          error?.response?.data?.error?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to add dish",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-orange-50">
@@ -151,11 +193,19 @@ const AddDishes = () => {
               </div>
             </div>
 
+            {/* API Error */}
+            {errors.apiError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+                <p className="text-red-500 text-sm">{errors.apiError}</p>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition"
+              disabled={loading}
+              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              + Add Dish
+              {loading ? "Adding..." : "+ Add Dish"}
             </button>
           </form>
         </div>
@@ -172,8 +222,8 @@ const AddDishes = () => {
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium">{d.name}</p>
-                      <span className="text-xs">{d.isVeg === "true" ? "🟢" : "🔴"}</span>
-                      {d.isAvailable === "false" && (
+                      <span className="text-xs">{d.isVeg === true || d.isVeg === "true" ? "🟢" : "🔴"}</span>
+                      {(d.isAvailable === false || d.isAvailable === "false") && (
                         <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
                           Unavailable
                         </span>

@@ -17,7 +17,26 @@ export const registerUser = (data) => {
 
 export const loginUser = (data) => {
   return API.post("/api/auth/login", {
-    username: data.emailOrPhone,
+    email: data.emailOrPhone,
     password: data.password,
   }).then((res) => res.data);
-}
+
+};
+
+
+export const createRestaurant = (data) => {
+  const token = localStorage.getItem("token");
+  return API.post("/api/restaurants", data, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }).then((res) => res.data);
+};
+
+
+export const addDish = (data) => {
+  const token = localStorage.getItem("token");
+  return API.post(`/api/menu/`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((res) => res.data);
+};

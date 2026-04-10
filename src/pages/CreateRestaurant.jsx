@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { createRestaurant } from "../api/authApi";
 
 const CreateRestaurant = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const CreateRestaurant = () => {
   });
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     let newErrors = {};
@@ -27,18 +29,58 @@ const CreateRestaurant = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
-  e.preventDefault();
-  const validationErrors = validate();
-  if (Object.keys(validationErrors).length > 0) {
-    setErrors(validationErrors);
-    return;
-  }
-  // Save restaurant to localStorage
-  localStorage.setItem("restaurant", JSON.stringify({ ...formData, id: Date.now() }));
-  setSuccess(true);
-  setTimeout(() => navigate("/add-dishes"), 1500);
-};
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        address: formData.address,
+      };
+
+      console.log("Payload →", payload);
+
+      const response = await createRestaurant(payload);
+      console.log("Response →", response); // verify response structure
+
+      const restaurantId = response?.data?.id;
+
+      if (restaurantId) {
+        localStorage.setItem("restaurantId", restaurantId);
+      }
+
+      setSuccess(true);
+
+      setTimeout(() => {
+        if (restaurantId) {
+          navigate(`/add-dishes?restaurantId=${restaurantId}`);
+        } else {
+          navigate("/add-dishes");
+        }
+      }, 1500);
+
+    } catch (error) {
+      console.error("API Error →", error);
+      setErrors({
+        apiError:
+          error?.response?.data?.error?.message ||
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to create restaurant",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-orange-50">
@@ -59,6 +101,12 @@ const CreateRestaurant = () => {
               <p className="text-green-600 text-sm">
                 Restaurant created! Redirecting to add dishes...
               </p>
+            </div>
+          )}
+
+          {errors.apiError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+              <p className="text-red-500 text-sm">{errors.apiError}</p>
             </div>
           )}
 
@@ -100,9 +148,10 @@ const CreateRestaurant = () => {
 
             <button
               type="submit"
-              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition mt-2"
+              disabled={loading}
+              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed mt-2"
             >
-              Create & Add Dishes →
+              {loading ? "Creating..." : "Create & Add Dishes →"}
             </button>
           </form>
         </div>
