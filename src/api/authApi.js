@@ -14,3 +14,10 @@ export const registerUser = (data) => {
   });
 
 };
+
+export const loginUser = (data) => {
+  return API.post("/api/auth/login", {
+    username: data.emailOrPhone,
+    password: data.password,
+  }).then((res) => res.data);
+}

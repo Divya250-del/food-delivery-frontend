@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { loginUser } from "../api/authApi";
 
 function Signin() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ function Signin() {
   });
 
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
 
   const validate = () => {
     let newErrors = {};
@@ -23,7 +25,7 @@ function Signin() {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
@@ -31,12 +33,22 @@ function Signin() {
       return;
     }
 
-    // Dummy role logic — if email contains "owner", set OWNER else CUSTOMER
-    const role = formData.emailOrPhone.includes("owner") ? "OWNER" : "CUSTOMER";
-    localStorage.setItem("role", role);
-    localStorage.setItem("isLoggedIn", "true");
+    try {
+      setLoading(true);
+      const response = await loginUser(formData);
 
-    navigate("/");
+      // localStorage.setItem("role", response.role);
+      localStorage.setItem("token", response.accessToken);
+      localStorage.setItem("isLoggedIn", "true");
+
+      navigate("/");
+    } catch (error) {
+      setErrors({
+        apiError: error?.response?.data?.message || error?.message || "Invalid credentials",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -98,9 +110,10 @@ function Signin() {
           {/* Submit Button */}
           <button
             type="submit"
-            className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition mt-2"
+            disabled={loading}
+            className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed mt-2"
           >
-            Login
+            {loading ? "Signing in..." : "Login"}
           </button>
 
           {/* Sign up link */}
