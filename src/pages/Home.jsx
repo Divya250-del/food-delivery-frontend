@@ -1,6 +1,19 @@
 import { useRef } from "react";
 import Navbar from "../components/Navbar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+const DISHES = [
+  { id: 1, name: "Pizza", emoji: "🍕" },
+  { id: 2, name: "Burger", emoji: "🍔" },
+  { id: 3, name: "Biryani", emoji: "🍛" },
+  { id: 4, name: "Ramen", emoji: "🍜" },
+  { id: 5, name: "Tacos", emoji: "🌮" },
+  { id: 6, name: "Sushi", emoji: "🍣" },
+  { id: 7, name: "Cake", emoji: "🎂" },
+  { id: 8, name: "Salad", emoji: "🥗" },
+  { id: 9, name: "Shake", emoji: "🥤" },
+  { id: 10, name: "Sandwich", emoji: "🥪" },
+];
 
 const DUMMY_RESTAURANTS = [
   { id: 1, name: "Pizza Palace", cuisine: "Italian", rating: "4.5★", delivery: "25 min", icon: "🍕" },
@@ -15,9 +28,14 @@ const Home = () => {
   const role = localStorage.getItem("role");
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const restaurantsRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleBrowse = () => {
     restaurantsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleDishClick = (dish) => {
+    navigate(`/restaurants?dish=${dish.name}`);
   };
 
   return (
@@ -91,6 +109,27 @@ const Home = () => {
         ))}
       </div>
 
+      {/* What's on your mind — Dish Categories */}
+      <div className="px-10 py-12 bg-white border-b border-gray-100">
+        <h2 className="text-xl font-medium mb-8">What's on your mind?</h2>
+        <div className="grid grid-cols-5 gap-6">
+          {DISHES.map((dish) => (
+            <div
+              key={dish.id}
+              onClick={() => handleDishClick(dish)}
+              className="flex flex-col items-center gap-3 cursor-pointer group"
+            >
+              <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center text-4xl group-hover:bg-orange-100 transition">
+                {dish.emoji}
+              </div>
+              <p className="text-sm font-medium text-gray-700 group-hover:text-orange-500 transition">
+                {dish.name}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Restaurants Section */}
       <div ref={restaurantsRef} className="px-10 py-12 bg-white">
         <h2 className="text-2xl font-medium mb-2">
@@ -106,12 +145,9 @@ const Home = () => {
               key={r.id}
               className="border border-gray-100 rounded-2xl p-5 hover:shadow-md hover:border-orange-200 transition cursor-pointer"
             >
-              {/* Icon Banner */}
               <div className="w-full h-28 bg-orange-50 rounded-xl flex items-center justify-center text-5xl mb-4">
                 {r.icon}
               </div>
-
-              {/* Info */}
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium">{r.name}</p>
@@ -121,7 +157,6 @@ const Home = () => {
                   {r.rating}
                 </span>
               </div>
-
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
                 <p className="text-xs text-gray-400">🕐 {r.delivery}</p>
                 <button className="text-xs text-orange-500 font-medium hover:underline">

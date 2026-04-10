@@ -5,6 +5,8 @@ import Signup from "./pages/Signup";
 import CreateRestaurant from "./pages/CreateRestaurant";
 import AddDishes from "./pages/AddDishes";
 import MyRestaurant from "./pages/MyRestaurant";
+import RestaurantsByDish from "./pages/RestaurantsByDish";
+
 
 
 
@@ -19,6 +21,7 @@ function App() {
         <Route path="/create-restaurant" element={<CreateRestaurant />} />
         <Route path="/add-dishes" element={<AddDishes />} />
         <Route path="/my-restaurant" element={<MyRestaurant />} />
+        <Route path="/restaurants" element={<RestaurantsByDish />} />
       </Routes>
     </BrowserRouter>
   );
