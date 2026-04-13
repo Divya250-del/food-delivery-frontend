@@ -6,11 +6,7 @@ const API = axios.create({
 });
 
 export const registerUser = (data) => {
-  return API.post("/api/auth/register", data).then(res => {
-
-    
-
-  
+  return API.post("/api/auth/register", data).then(res => {  
   });
 
 };
@@ -25,15 +21,12 @@ export const loginUser = (data) => {
 
 
 export const createRestaurant = (data) => {
-  const token = localStorage.getItem("token");
   return API.post("/api/restaurants", data).then((res) => res.data);
 };
 
 
 export const attachMenuItemToRestaurant = (data) => {
-  const token = localStorage.getItem("token");
-  return API.post("/api/menu/attach", data
-  ).then((res) => res.data);
+  return API.post("/api/menu/attach", data).then((res) => res.data);
 };
 
 export const getAllRestaurants = () => {
@@ -50,4 +43,12 @@ export const getMyRestaurants = () => {
 
 export const getRestaurantMenu = (restaurantId) => {
   return API.get(`/api/menu/restaurant/${restaurantId}`).then((res) => res.data);
+};
+
+export const addToCart = (data) => {
+  return API.post("/api/cart/add", data).then((res) => res.data);
+};
+
+export const getCart = () => {
+  return API.get("/api/cart").then((res) => res.data);
 };

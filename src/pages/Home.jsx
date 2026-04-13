@@ -1,21 +1,9 @@
 import { useRef, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Link, useNavigate } from "react-router-dom";
-import { getMyRestaurants, getAllRestaurants } from "../api/authApi";
+import { getMyRestaurants, getAllRestaurants,getAllMenuItems  } from "../api/authApi";
 
-// ... DISHES array stays same ...
-const DISHES = [
-  { id: 1, name: "Pizza", emoji: "🍕" },
-  { id: 2, name: "Burger", emoji: "🍔" },
-  { id: 3, name: "Biryani", emoji: "🍛" },
-  { id: 4, name: "Ramen", emoji: "🍜" },
-  { id: 5, name: "Tacos", emoji: "🌮" },
-  { id: 6, name: "Sushi", emoji: "🍣" },
-  { id: 7, name: "Cake", emoji: "🎂" },
-  { id: 8, name: "Salad", emoji: "🥗" },
-  { id: 9, name: "Shake", emoji: "🥤" },
-  { id: 10, name: "Sandwich", emoji: "🥪" },
-];
+
 
 const Home = () => {
   const role = localStorage.getItem("role");
@@ -28,6 +16,44 @@ const Home = () => {
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
   const [restaurantError, setRestaurantError] = useState("");
   const [myrestaurant, setMyRestaurant] = useState(null);
+  const [allDishes, setAllDishes] = useState([]);
+  const [loadingDishes, setLoadingDishes] = useState(false);
+  const [dishError, setDishError] = useState("");
+
+  const fetchAllDishes = async () => {
+  try {
+    setLoadingDishes(true);
+    setDishError("");
+
+    const response = await getAllMenuItems();
+    console.log("All dishes →", response);
+
+    setAllDishes(response?.data || []);
+  } catch (error) {
+    console.error("Error fetching dishes →", error);
+    setDishError("Failed to load dishes");
+  } finally {
+    setLoadingDishes(false);
+  }
+  };
+  const fetchRestaurants = async () => {
+    try {
+      setLoadingRestaurants(true);
+      const response = await getAllRestaurants();
+      console.log("Restaurants →", response); // verify structure
+      setRestaurants(response?.data || response || []);
+    } catch (error) {
+      console.error("Error fetching restaurants →", error);
+      setRestaurantError("Failed to load restaurants");
+    } finally {
+      setLoadingRestaurants(false);
+    }
+  };
+
+useEffect(() => {
+  fetchAllDishes();
+  fetchRestaurants();
+}, []);
 
   useEffect(() => {
     const fetchMyRestaurant = async () => {
@@ -45,22 +71,10 @@ const Home = () => {
     }
   }, []);
 
-  const fetchRestaurants = async () => {
-    try {
-      setLoadingRestaurants(true);
-      const response = await getAllRestaurants();
-      console.log("Restaurants →", response); // verify structure
-      setRestaurants(response?.data || response || []);
-    } catch (error) {
-      console.error("Error fetching restaurants →", error);
-      setRestaurantError("Failed to load restaurants");
-    } finally {
-      setLoadingRestaurants(false);
-    }
-  };
+
 
   const handleBrowse = () => {
-    fetchRestaurants();
+    
     restaurantsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -70,7 +84,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant} />
+      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant}/>
 
       {/* Hero Section — unchanged */}
       <div className="flex items-center justify-between px-10 py-16 bg-orange-50 min-h-[480px]">
@@ -122,41 +136,54 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Stats Bar — unchanged */}
-      <div className="flex bg-gray-50 border-t border-gray-100">
-        {[
-          { num: "500+", label: "Restaurants" },
-          { num: "10k+", label: "Happy Customers" },
-          { num: "30 min", label: "Avg Delivery" },
-          { num: "4.8★", label: "Avg Rating" },
-        ].map((s, i) => (
-          <div key={i} className={`flex-1 text-center py-6 ${i !== 3 ? "border-r border-gray-100" : ""}`}>
-            <p className="text-2xl font-medium text-orange-500">{s.num}</p>
-            <p className="text-xs text-gray-400 mt-1">{s.label}</p>
-          </div>
-        ))}
-      </div>
 
       {/* Dish Categories — unchanged */}
-      <div className="px-10 py-12 bg-white border-b border-gray-100">
-        <h2 className="text-xl font-medium mb-8">What's on your mind?</h2>
-        <div className="grid grid-cols-5 gap-6">
-          {DISHES.map((dish) => (
-            <div
-              key={dish.id}
-              onClick={() => handleDishClick(dish)}
-              className="flex flex-col items-center gap-3 cursor-pointer group"
-            >
-              <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center text-4xl group-hover:bg-orange-100 transition">
-                {dish.emoji}
-              </div>
-              <p className="text-sm font-medium text-gray-700 group-hover:text-orange-500 transition">
-                {dish.name}
-              </p>
-            </div>
-          ))}
+<div className="px-10 py-12 bg-white border-b border-gray-100">
+  <h2 className="text-xl font-medium mb-8">What's on your mind?</h2>
+
+  {loadingDishes && (
+    <div className="text-center py-8">
+      <p className="text-gray-400 text-sm">Loading dishes...</p>
+    </div>
+  )}
+
+  {dishError && (
+    <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
+      <p className="text-red-500 text-sm">{dishError}</p>
+    </div>
+  )}
+
+  {!loadingDishes && !dishError && allDishes.length === 0 && (
+    <div className="text-center py-8">
+      <p className="text-gray-400 text-sm">No dishes found</p>
+    </div>
+  )}
+
+  {!loadingDishes && !dishError && allDishes.length > 0 && (
+    <div className="grid grid-cols-5 gap-6">
+      {allDishes.map((dish) => (
+        <div
+          key={dish.id}
+          onClick={() => handleDishClick(dish)}
+          className="flex flex-col items-center gap-3 cursor-pointer group"
+        >
+          <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center text-3xl group-hover:bg-orange-100 transition">
+            {dish.isVeg ? "🟢" : "🔴"}
+          </div>
+
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-700 group-hover:text-orange-500 transition">
+              {dish.name}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              {dish.description || "No description"}
+            </p>
+          </div>
         </div>
-      </div>
+      ))}
+    </div>
+  )}
+</div>
 
       {/* Restaurants Section */}
       <div ref={restaurantsRef} className="px-10 py-12 bg-white">
@@ -217,9 +244,12 @@ const Home = () => {
                 </div>
                 <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
                   <p className="text-xs text-gray-400 truncate max-w-[60%]">{r.description || "—"}</p>
-                  <button className="text-xs text-orange-500 font-medium hover:underline">
-                    View Menu →
-                  </button>
+                <button
+                onClick={() => navigate(`/restaurant/${r.id}/menu`)}
+                className="text-xs text-orange-500 font-medium hover:underline"
+                >
+                View Menu →
+                </button>
                 </div>
               </div>
             ))}

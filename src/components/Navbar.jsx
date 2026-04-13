@@ -25,8 +25,14 @@ const Navbar = ({ isLoggedIn, role, restaurant }) => {
             </Link>
           </>
         ) : (
-          <div className="flex gap-3 items-center">
-              {restaurant ? (
+          <>
+            <Link to="/cart">
+              <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
+                🛒 Cart
+              </button>
+            </Link>
+
+            {restaurant ? (
               <Link to="/my-restaurant">
                 <button className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
                   My Restaurant
@@ -49,7 +55,7 @@ const Navbar = ({ isLoggedIn, role, restaurant }) => {
             >
               Logout
             </button>
-          </div>
+          </>
         )}
       </div>
     </div>

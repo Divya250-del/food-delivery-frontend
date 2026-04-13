@@ -38,7 +38,6 @@ function Signin() {
       const response = await loginUser(formData);
 
       // localStorage.setItem("role", response.role);
-      localStorage.setItem("token", response.accessToken);
       localStorage.setItem("isLoggedIn", "true");
 
       navigate("/");
