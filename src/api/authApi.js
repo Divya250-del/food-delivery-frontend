@@ -26,21 +26,28 @@ export const loginUser = (data) => {
 
 export const createRestaurant = (data) => {
   const token = localStorage.getItem("token");
-  return API.post("/api/restaurants", data, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }).then((res) => res.data);
+  return API.post("/api/restaurants", data).then((res) => res.data);
 };
 
 
-export const addDish = (data) => {
+export const attachMenuItemToRestaurant = (data) => {
   const token = localStorage.getItem("token");
-  return API.post(`/api/menu/`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  }).then((res) => res.data);
+  return API.post("/api/menu/attach", data
+  ).then((res) => res.data);
 };
 
 export const getAllRestaurants = () => {
   return API.get("/api/restaurants").then((res) => res.data);
+};
+
+export const getAllMenuItems = () => {
+  return API.get("/api/menu").then((res) => res.data);
+};
+
+export const getMyRestaurants = () => {
+  return API.get("/api/restaurants/owner").then((res) => res.data);
+};
+
+export const getRestaurantMenu = (restaurantId) => {
+  return API.get(`/api/menu/restaurant/${restaurantId}`).then((res) => res.data);
 };

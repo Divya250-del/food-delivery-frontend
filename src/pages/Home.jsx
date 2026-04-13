@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllRestaurants } from "../api/authApi";
+import { getMyRestaurants, getAllRestaurants } from "../api/authApi";
 
 // ... DISHES array stays same ...
 const DISHES = [
@@ -22,10 +22,28 @@ const Home = () => {
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const restaurantsRef = useRef(null);
   const navigate = useNavigate();
+  
 
   const [restaurants, setRestaurants] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
   const [restaurantError, setRestaurantError] = useState("");
+  const [myrestaurant, setMyRestaurant] = useState(null);
+
+  useEffect(() => {
+    const fetchMyRestaurant = async () => {
+      try {
+        const res = await getMyRestaurants();
+        const data = res?.data?.[0] || null;
+        setMyRestaurant(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    if (isLoggedIn) {
+      fetchMyRestaurant();
+    }
+  }, []);
 
   const fetchRestaurants = async () => {
     try {
@@ -52,7 +70,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn={isLoggedIn} role={role} />
+      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant} />
 
       {/* Hero Section — unchanged */}
       <div className="flex items-center justify-between px-10 py-16 bg-orange-50 min-h-[480px]">

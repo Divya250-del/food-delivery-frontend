@@ -1,36 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { addDish } from "../api/authApi";
+import { attachMenuItemToRestaurant, getAllMenuItems } from "../api/authApi";
 
 const AddDishes = () => {
   const role = localStorage.getItem("role");
   const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
   const [searchParams] = useSearchParams();
-
-  // get restaurantId from URL or localStorage
-  const restaurantId = localStorage.getItem("restaurantId");
+  const restaurantId = searchParams.get("restaurantId") || localStorage.getItem("restaurantId");
 
   const [dish, setDish] = useState({
-    name: "",
-    description: "",
+    menuItemId: "",
     price: "",
-    category: "",
-    isVeg: "",
     isAvailable: "true",
   });
-  const [dishes, setDishes] = useState(() => {
-    return JSON.parse(localStorage.getItem("dishes") || "[]");
-  });
+
+  const [menuItems, setMenuItems] = useState([]);
+  const [loadingMenu, setLoadingMenu] = useState(false);
+  const [dishes, setDishes] = useState(() =>
+    JSON.parse(localStorage.getItem("dishes") || "[]")
+  );
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  // load dishes dropdown on mount
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        setLoadingMenu(true);
+        const response = await getAllMenuItems();
+        console.log("Menu Items →", response);
+        setMenuItems(response?.data || response || []);
+      } catch (error) {
+        console.error("Failed to load menu items →", error);
+      } finally {
+        setLoadingMenu(false);
+      }
+    };
+    fetchMenuItems();
+  }, []);
+
   const validate = () => {
     let newErrors = {};
-    if (!dish.name) newErrors.name = "Dish name is required";
+    if (!dish.menuItemId) newErrors.menuItemId = "Please select a dish";
     if (!dish.price) newErrors.price = "Price is required";
-    if (!dish.category) newErrors.category = "Category is required";
-    if (dish.isVeg === "") newErrors.isVeg = "Please select Veg or Non-Veg";
     return newErrors;
   };
 
@@ -39,55 +52,56 @@ const AddDishes = () => {
     setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  const handleAddDish = async (e) => {
-    e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+const handleAddDish = async (e) => {
+  e.preventDefault();
+  const validationErrors = validate();
+  if (Object.keys(validationErrors).length > 0) {
+    setErrors(validationErrors);
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      // ✅ Exact payload matching your Postman
-      const payload = {
-        name: dish.name,
-        description: dish.description,
-        price: Number(dish.price),         // backend expects number not string
-        isVeg: dish.isVeg === "true",      // backend expects boolean not string
-        isAvailable: dish.isAvailable === "true",
-        restaurantId:restaurantId
-      };
+    const payload = {
+      restaurantId: Number(restaurantId),   // from URL/localStorage
+      menuItemId: Number(dish.menuItemId),
+      price: Number(dish.price),
+      isAvailable: dish.isAvailable === "true",
+    };
 
-      console.log("Dish Payload →", payload);
+    console.log("Attach Payload →", payload);
 
-      const response = await addDish(payload);
-      console.log("Dish Response →", response);
+    const response = await attachMenuItemToRestaurant(payload);
+    console.log("Attach Response →", response);
 
-      // save to localStorage for MyRestaurant page
-      const newDish = { ...payload, id: response?.data?.id || Date.now(), category: dish.category };
-      const existingDishes = JSON.parse(localStorage.getItem("dishes") || "[]");
-      const updatedDishes = [...existingDishes, newDish];
-      localStorage.setItem("dishes", JSON.stringify(updatedDishes));
-      setDishes(updatedDishes);
+    const selectedItem = menuItems.find((m) => String(m.id) === String(dish.menuItemId));
+    const newDish = {
+      id: response?.data?.id || Date.now(),
+      name: selectedItem?.name || "Unknown",
+      price: dish.price,
+      isAvailable: dish.isAvailable,
+    };
 
-      // reset form
-      setDish({ name: "", description: "", price: "", category: "", isVeg: "", isAvailable: "true" });
+    const updatedDishes = [...dishes, newDish];
+    localStorage.setItem("dishes", JSON.stringify(updatedDishes));
+    setDishes(updatedDishes);
 
-    } catch (error) {
-      console.error("Add Dish Error →", error);
-      setErrors({
-        apiError:
-          error?.response?.data?.error?.message ||
-          error?.response?.data?.message ||
-          error?.message ||
-          "Failed to add dish",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    setDish({ menuItemId: "", price: "", isAvailable: "true" });
+
+  } catch (error) {
+    console.error("Attach Dish Error →", error);
+    setErrors({
+      apiError:
+        error?.response?.data?.error?.message ||
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to attach dish",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-orange-50">
@@ -101,36 +115,35 @@ const AddDishes = () => {
           Add dishes to your restaurant menu
         </p>
 
-        {/* Add Dish Form */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
           <form onSubmit={handleAddDish} className="flex flex-col gap-4">
 
-            {/* Dish Name */}
+            {/* Dish Dropdown */}
             <div>
-              <input
-                name="name"
-                placeholder="Dish Name"
-                value={dish.name}
+              <select
+                name="menuItemId"
+                value={dish.menuItemId}
                 onChange={handleChange}
+                disabled={loadingMenu}
                 className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                  ${errors.name ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
-              />
-              {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                  ${errors.menuItemId ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}
+                  ${loadingMenu ? "text-gray-400" : ""}`}
+              >
+                <option value="">
+                  {loadingMenu ? "Loading dishes..." : "Select Dish"}
+                </option>
+                {menuItems.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
+              {errors.menuItemId && (
+                <p className="text-red-500 text-xs mt-1">{errors.menuItemId}</p>
+              )}
             </div>
 
-            {/* Description */}
-            <div>
-              <textarea
-                name="description"
-                placeholder="Description (optional)"
-                value={dish.description}
-                onChange={handleChange}
-                rows={2}
-                className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm outline-none focus:border-orange-400 transition resize-none"
-              />
-            </div>
-
-            {/* Price & Category */}
+            {/* Price & Available */}
             <div className="flex gap-3">
               <div className="flex-1">
                 <input
@@ -142,42 +155,9 @@ const AddDishes = () => {
                   className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
                     ${errors.price ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
                 />
-                {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price}</p>}
-              </div>
-
-              <div className="flex-1">
-                <select
-                  name="category"
-                  value={dish.category}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                    ${errors.category ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
-                >
-                  <option value="">Category</option>
-                  <option value="Starter">Starter</option>
-                  <option value="Main Course">Main Course</option>
-                  <option value="Dessert">Dessert</option>
-                  <option value="Drinks">Drinks</option>
-                </select>
-                {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category}</p>}
-              </div>
-            </div>
-
-            {/* isVeg & isAvailable */}
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <select
-                  name="isVeg"
-                  value={dish.isVeg}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                    ${errors.isVeg ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
-                >
-                  <option value="">Veg / Non-Veg</option>
-                  <option value="true">🟢 Veg</option>
-                  <option value="false">🔴 Non-Veg</option>
-                </select>
-                {errors.isVeg && <p className="text-red-500 text-xs mt-1">{errors.isVeg}</p>}
+                {errors.price && (
+                  <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+                )}
               </div>
 
               <div className="flex-1">
@@ -202,7 +182,7 @@ const AddDishes = () => {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || loadingMenu}
               className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? "Adding..." : "+ Add Dish"}
@@ -210,28 +190,22 @@ const AddDishes = () => {
           </form>
         </div>
 
-        {/* Dishes List */}
+        {/* Added Dishes List */}
         {dishes.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h2 className="text-base font-medium mb-4">
-              Menu ({dishes.length} dishes)
+              Added ({dishes.length} dishes)
             </h2>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col">
               {dishes.map((d) => (
                 <div key={d.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium">{d.name}</p>
-                      <span className="text-xs">{d.isVeg === true || d.isVeg === "true" ? "🟢" : "🔴"}</span>
-                      {(d.isAvailable === false || d.isAvailable === "false") && (
-                        <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
-                          Unavailable
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {d.category}{d.description && ` • ${d.description}`}
-                    </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium">{d.name}</p>
+                    {(d.isAvailable === false || d.isAvailable === "false") && (
+                      <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">
+                        Unavailable
+                      </span>
+                    )}
                   </div>
                   <p className="text-sm font-medium text-orange-500">₹{d.price}</p>
                 </div>
