@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-const Navbar = ({ isLoggedIn, role, restaurant }) => {
+const Navbar = ({ isLoggedIn, role, restaurant, cartCount = 0 }) => {
   return (
     <div className="flex justify-between items-center px-10 py-4 bg-white border-b border-gray-100 sticky top-0 z-10">
       <Link to="/">
@@ -27,8 +27,13 @@ const Navbar = ({ isLoggedIn, role, restaurant }) => {
         ) : (
           <>
             <Link to="/cart">
-              <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
+              <button className="relative px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
                 🛒 Cart
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 flex items-center justify-center bg-orange-500 text-white text-[11px] rounded-full font-medium">
+                    {cartCount > 99 ? "99+" : cartCount}
+                  </span>
+                )}
               </button>
             </Link>
 
