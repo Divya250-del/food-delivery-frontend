@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Link, useNavigate } from "react-router-dom";
-import { getMyRestaurants, getAllRestaurants,getAllMenuItems  } from "../api/authApi";
+import { getMyRestaurants, getAllRestaurants,getAllMenuItems,getCart   } from "../api/authApi";
 
 
 
@@ -19,6 +19,7 @@ const Home = () => {
   const [allDishes, setAllDishes] = useState([]);
   const [loadingDishes, setLoadingDishes] = useState(false);
   const [dishError, setDishError] = useState("");
+  const [cartCount, setCartCount] = useState(0);
 
   const fetchAllDishes = async () => {
   try {
@@ -50,9 +51,26 @@ const Home = () => {
     }
   };
 
+  const fetchCartCount = async () => {
+  try {
+    const response = await getCart();
+    const items = response?.data?.items || [];
+
+    const totalCount = items.reduce(
+      (total, item) => total + (item.quantity || 0),
+      0
+    );
+
+    setCartCount(totalCount);
+  } catch (error) {
+    console.error("Error fetching cart count →", error);
+  }
+};
+
 useEffect(() => {
   fetchAllDishes();
   fetchRestaurants();
+  
 }, []);
 
   useEffect(() => {
@@ -68,6 +86,7 @@ useEffect(() => {
 
     if (isLoggedIn) {
       fetchMyRestaurant();
+      fetchCartCount();
     }
   }, []);
 
@@ -84,7 +103,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant}/>
+      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant} cartCount={cartCount}/>
 
       {/* Hero Section — unchanged */}
       <div className="flex items-center justify-between px-10 py-16 bg-orange-50 min-h-[480px]">

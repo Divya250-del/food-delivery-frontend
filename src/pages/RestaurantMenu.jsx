@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { getRestaurantMenu, addToCart } from "../api/authApi";
+import { getRestaurantMenu, addToCart,getCart,getMyRestaurants } from "../api/authApi";
 
 const RestaurantMenu = () => {
   const role = localStorage.getItem("role");
@@ -11,6 +11,36 @@ const RestaurantMenu = () => {
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+  const [myrestaurant, setMyRestaurant] = useState(null);
+
+
+  const fetchMyRestaurant = async () => {
+      try {
+        const res = await getMyRestaurants();
+        const data = res?.data?.[0] || null;
+        setMyRestaurant(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+
+  const fetchCartCount = async () => {
+  try {
+    const response = await getCart();
+    const items = response?.data?.items || [];
+
+    const totalCount = items.reduce(
+      (total, item) => total + (item.quantity || 0),
+      0
+    );
+
+    setCartCount(totalCount);
+  } catch (err) {
+    console.error("Cart count error →", err);
+  }
+};
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -32,6 +62,8 @@ const RestaurantMenu = () => {
 
     if (restaurantId) {
       fetchMenu();
+      fetchCartCount();
+      fetchMyRestaurant();
     }
   }, [restaurantId]);
 
@@ -65,7 +97,7 @@ const RestaurantMenu = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} />
+      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant} cartCount={cartCount}/>
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <h1 className="text-2xl font-medium mb-2">

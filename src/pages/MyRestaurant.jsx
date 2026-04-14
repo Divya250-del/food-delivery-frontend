@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { getMyRestaurants, getRestaurantMenu } from "../api/authApi";
+import { getMyRestaurants, getRestaurantMenu,getCart  } from "../api/authApi";
 
 const MyRestaurant = () => {
   const role = localStorage.getItem("role");
@@ -13,6 +13,23 @@ const MyRestaurant = () => {
   const [loading, setLoading] = useState(true);
   const [dishesLoading, setDishesLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+
+  const fetchCartCount = async () => {
+  try {
+    const response = await getCart();
+    const items = response?.data?.items || [];
+
+    const totalCount = items.reduce(
+      (total, item) => total + (item.quantity || 0),
+      0
+    );
+
+    setCartCount(totalCount);
+  } catch (err) {
+    console.error("Cart count error →", err);
+  }
+};
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,12 +54,13 @@ const MyRestaurant = () => {
       }
     };
     fetchData();
+    fetchCartCount();
   }, []);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-orange-50">
-        <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} />
+        <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} cartCount={cartCount}/>
         <div className="flex items-center justify-center min-h-[80vh]">
           <p className="text-gray-400 text-sm">Loading...</p>
         </div>
@@ -69,7 +87,7 @@ const MyRestaurant = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} />
+      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} cartCount={cartCount} />
 
       <div className="max-w-2xl mx-auto px-4 py-12">
 
