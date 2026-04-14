@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { getCart, getMyRestaurants } from "../api/authApi";
+import { getCart, getMyRestaurants,placeOrder} from "../api/authApi";
 
 const CartPage = () => {
   const role = localStorage.getItem("role");
@@ -11,6 +11,7 @@ const CartPage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [placingOrder, setPlacingOrder] = useState(false);
   
 
   useEffect(() => {
@@ -54,6 +55,46 @@ const CartPage = () => {
       setLoading(false);
     }
   }, [isLoggedIn]);
+
+  const handlePlaceOrder = async () => {
+  try {
+    if (!cart?.restaurantId) {
+      alert("Restaurant not found for this cart");
+      return;
+    }
+
+    setPlacingOrder(true);
+
+    const payload = {
+      restaurantId: Number(cart.restaurantId),
+    };
+
+    console.log("Place order payload →", payload);
+
+    const response = await placeOrder(payload);
+    console.log("Place order response →", response);
+
+    alert("Order placed successfully ✅");
+
+    // cart page refresh
+    setCart(null);
+    setItems([]);
+  } catch (error) {
+    console.error("Place order error →", error);
+
+    if (error?.response?.status === 401) {
+      alert("Please login first ❌");
+    } else {
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to place order"
+      );
+    }
+  } finally {
+    setPlacingOrder(false);
+  }
+};
 
   const cartCount = (items || []).reduce(
     (total, item) => total + (item.quantity || 0),
@@ -131,9 +172,13 @@ const CartPage = () => {
                 </p>
               </div>
 
-              <button className="w-full mt-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition">
-                Place Order
-              </button>
+                <button
+                onClick={handlePlaceOrder}
+                disabled={placingOrder || items.length === 0}
+                className="w-full mt-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                {placingOrder ? "Placing Order..." : "Place Order"}
+                </button>
             </div>
           </div>
         )}

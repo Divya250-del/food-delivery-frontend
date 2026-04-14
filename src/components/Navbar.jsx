@@ -36,6 +36,11 @@ const Navbar = ({ isLoggedIn, role, restaurant, cartCount = 0 }) => {
                 )}
               </button>
             </Link>
+            <Link to="/my-orders">
+            <button className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
+              My Orders
+            </button>
+          </Link>
 
             {restaurant ? (
               <Link to="/my-restaurant">

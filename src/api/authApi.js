@@ -52,3 +52,11 @@ export const addToCart = (data) => {
 export const getCart = () => {
   return API.get("/api/cart").then((res) => res.data);
 };
+
+export const placeOrder = (data) => {
+  return API.post("/api/orders/place", data).then((res) => res.data);
+};
+
+export const getMyOrders = () => {
+  return API.get("/api/orders/user").then((res) => res.data);
+};

@@ -8,6 +8,7 @@ import MyRestaurant from "./pages/MyRestaurant";
 import RestaurantsByDish from "./pages/RestaurantsByDish";
 import RestaurantMenu from "./pages/RestaurantMenu";
 import CartPage from "./pages/CartPage";
+import MyOrders from "./pages/MyOrders";
 
 
 
@@ -25,8 +26,9 @@ function App() {
         <Route path="/add-dishes" element={<AddDishes />} />
         <Route path="/my-restaurant" element={<MyRestaurant />} />
         <Route path="/restaurants" element={<RestaurantsByDish />} />
-        <Route path="/restaurant/:restaurantId/menu" element={<RestaurantMenu />} />
+        <Route path="/restaurant/:restaurantId/menu" element={<RestaurantMenu />} />        
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/my-orders" element={<MyOrders />} />
       </Routes>
     </BrowserRouter>
   );
