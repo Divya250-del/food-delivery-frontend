@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = axios.create({
+export const API = axios.create({
   baseURL: "http://localhost:8080",
   withCredentials: true,
 });
@@ -11,6 +11,14 @@ export const registerUser = (data) => {
 
 };
 
+export const registerCustomer = (data) => {
+  return API.post("/api/auth/register/customer", data).then((res) => res.data);
+};
+
+export const registerRestaurantOwner = (data) => {
+  return API.post("/api/auth/register/restaurantOwner", data).then((res) => res.data);
+};
+
 export const loginUser = (data) => {
   return API.post("/api/auth/login", {
     email: data.emailOrPhone,
@@ -18,6 +26,11 @@ export const loginUser = (data) => {
   }).then((res) => res.data);
 
 };
+
+export const logout = () => {
+  return API.post("/api/auth/logout");
+};
+
 
 
 export const createRestaurant = (data) => {

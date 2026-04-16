@@ -2,11 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { createRestaurant } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const CreateRestaurant = () => {
   const navigate = useNavigate();
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -50,7 +57,7 @@ const CreateRestaurant = () => {
       console.log("Payload →", payload);
 
       const response = await createRestaurant(payload);
-      console.log("Response →", response); // verify response structure
+      console.log("Response →", response);
 
       const restaurantId = response?.data?.id;
 
@@ -84,11 +91,12 @@ const CreateRestaurant = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} />
+
+      {/* ✅ UPDATED NAVBAR */}
+      <Navbar />
 
       <div className="flex items-center justify-center px-4 py-16">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm w-full max-w-lg p-8">
-
           <h1 className="text-2xl font-medium mb-1">
             Create <span className="text-orange-500">Restaurant</span>
           </h1>

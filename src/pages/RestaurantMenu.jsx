@@ -7,10 +7,18 @@ import {
   getCart,
   getMyRestaurants,
 } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const RestaurantMenu = () => {
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
   const { restaurantId } = useParams();
 
   const [menu, setMenu] = useState([]);
@@ -76,12 +84,13 @@ const RestaurantMenu = () => {
 
     if (restaurantId) {
       fetchMenu();
+
       if (isLoggedIn) {
         fetchCartCount();
         fetchMyRestaurant();
       }
     }
-  }, [restaurantId, isLoggedIn]);
+  }, [restaurantId, isLoggedIn]); // ✅ already correct
 
   const updateCartQuantity = async (dish, change) => {
     try {
@@ -103,7 +112,7 @@ const RestaurantMenu = () => {
         menuItemId: Number(dish.id || dish.menuItemId),
         name: dish.name,
         price: Number(dish.price),
-        quantity: change, // +1 or -1
+        quantity: change,
       };
 
       console.log("Cart update payload →", payload);
@@ -131,9 +140,9 @@ const RestaurantMenu = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
+
+      {/* ✅ UPDATED NAVBAR */}
       <Navbar
-        isLoggedIn={isLoggedIn}
-        role={role}
         restaurant={myrestaurant}
         cartCount={cartCount}
       />

@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const RESTAURANTS = [
   { id: 1, name: "Pizza Palace", cuisine: "Italian", rating: "4.5★", delivery: "25 min", emoji: "🍕", dishes: ["Pizza", "Sandwich"] },
@@ -16,9 +17,16 @@ const RESTAURANTS = [
 const RestaurantsByDish = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
   const dish = searchParams.get("dish");
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   const filtered = dish
     ? RESTAURANTS.filter((r) => r.dishes.includes(dish))
@@ -26,11 +34,12 @@ const RestaurantsByDish = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} />
+
+      {/* ✅ UPDATED NAVBAR */}
+      <Navbar />
 
       <div className="max-w-5xl mx-auto px-6 py-12">
 
-        {/* Header */}
         <div className="flex items-center gap-3 mb-2">
           <button
             onClick={() => navigate(-1)}

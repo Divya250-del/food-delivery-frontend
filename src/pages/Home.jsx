@@ -1,16 +1,20 @@
 import { useRef, useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Link, useNavigate } from "react-router-dom";
-import { getMyRestaurants, getAllRestaurants,getAllMenuItems,getCart   } from "../api/authApi";
-
-
+import { getMyRestaurants, getAllRestaurants, getAllMenuItems, getCart } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const Home = () => {
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  const { user } = useAuth(); // ✅ NEW
+  const isLoggedIn = !!user;  // ✅ NEW
+
   const restaurantsRef = useRef(null);
   const navigate = useNavigate();
-  
 
   const [restaurants, setRestaurants] = useState([]);
   const [loadingRestaurants, setLoadingRestaurants] = useState(false);
@@ -22,26 +26,24 @@ const Home = () => {
   const [cartCount, setCartCount] = useState(0);
 
   const fetchAllDishes = async () => {
-  try {
-    setLoadingDishes(true);
-    setDishError("");
+    try {
+      setLoadingDishes(true);
+      setDishError("");
 
-    const response = await getAllMenuItems();
-    console.log("All dishes →", response);
-
-    setAllDishes(response?.data || []);
-  } catch (error) {
-    console.error("Error fetching dishes →", error);
-    setDishError("Failed to load dishes");
-  } finally {
-    setLoadingDishes(false);
-  }
+      const response = await getAllMenuItems();
+      setAllDishes(response?.data || []);
+    } catch (error) {
+      console.error("Error fetching dishes →", error);
+      setDishError("Failed to load dishes");
+    } finally {
+      setLoadingDishes(false);
+    }
   };
+
   const fetchRestaurants = async () => {
     try {
       setLoadingRestaurants(true);
       const response = await getAllRestaurants();
-      console.log("Restaurants →", response); // verify structure
       setRestaurants(response?.data || response || []);
     } catch (error) {
       console.error("Error fetching restaurants →", error);
@@ -52,28 +54,30 @@ const Home = () => {
   };
 
   const fetchCartCount = async () => {
-  try {
-    const response = await getCart();
-    const items = response?.data?.items || [];
+    try {
+      const response = await getCart();
+      const items = response?.data?.items || [];
 
-    const totalCount = items.reduce(
-      (total, item) => total + (item.quantity || 0),
-      0
-    );
+      const totalCount = items.reduce(
+        (total, item) => total + (item.quantity || 0),
+        0
+      );
 
-    setCartCount(totalCount);
-  } catch (error) {
-    console.error("Error fetching cart count →", error);
-  }
-};
-
-useEffect(() => {
-  fetchAllDishes();
-  fetchRestaurants();
-  
-}, []);
+      setCartCount(totalCount);
+    } catch (error) {
+      console.error("Error fetching cart count →", error);
+    }
+  };
 
   useEffect(() => {
+    fetchAllDishes();
+    fetchRestaurants();
+  }, []);
+
+  // ✅ FIXED: role-based execution after user loads
+  useEffect(() => {
+    if (!user) return;
+
     const fetchMyRestaurant = async () => {
       try {
         const res = await getMyRestaurants();
@@ -84,16 +88,17 @@ useEffect(() => {
       }
     };
 
-    if (isLoggedIn) {
+    if (user.roles.includes("RESTAURANT_OWNER")) {
       fetchMyRestaurant();
+    }
+
+    if (user.roles.includes("CUSTOMER")) {
       fetchCartCount();
     }
-  }, []);
 
-
+  }, [user]); // ✅ IMPORTANT CHANGE
 
   const handleBrowse = () => {
-    
     restaurantsRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -103,8 +108,11 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={myrestaurant} cartCount={cartCount}/>
 
+      {/* ✅ UPDATED NAVBAR (removed role + isLoggedIn props) */}
+      <Navbar restaurant={myrestaurant} cartCount={cartCount} />
+
+      {/* rest of your code unchanged */}
       {/* Hero Section — unchanged */}
       <div className="flex items-center justify-between px-10 py-16 bg-orange-50 min-h-[480px]">
         <div className="max-w-xl">

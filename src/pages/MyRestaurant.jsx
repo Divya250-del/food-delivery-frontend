@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { getMyRestaurants, getRestaurantMenu,getCart  } from "../api/authApi";
+import { getMyRestaurants, getRestaurantMenu, getCart } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const MyRestaurant = () => {
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
   const navigate = useNavigate();
 
   const [restaurant, setRestaurant] = useState(null);
@@ -16,20 +24,20 @@ const MyRestaurant = () => {
   const [cartCount, setCartCount] = useState(0);
 
   const fetchCartCount = async () => {
-  try {
-    const response = await getCart();
-    const items = response?.data?.items || [];
+    try {
+      const response = await getCart();
+      const items = response?.data?.items || [];
 
-    const totalCount = items.reduce(
-      (total, item) => total + (item.quantity || 0),
-      0
-    );
+      const totalCount = items.reduce(
+        (total, item) => total + (item.quantity || 0),
+        0
+      );
 
-    setCartCount(totalCount);
-  } catch (err) {
-    console.error("Cart count error →", err);
-  }
-};
+      setCartCount(totalCount);
+    } catch (err) {
+      console.error("Cart count error →", err);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -53,14 +61,19 @@ const MyRestaurant = () => {
         setDishesLoading(false);
       }
     };
-    fetchData();
-    fetchCartCount();
-  }, []);
+
+    if (isLoggedIn) {
+      fetchData();
+      fetchCartCount();
+    } else {
+      setLoading(false);
+    }
+  }, [isLoggedIn]); // ✅ updated dependency
 
   if (loading) {
     return (
       <div className="min-h-screen bg-orange-50">
-        <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} cartCount={cartCount}/>
+        <Navbar restaurant={restaurant} cartCount={cartCount} />
         <div className="flex items-center justify-center min-h-[80vh]">
           <p className="text-gray-400 text-sm">Loading...</p>
         </div>
@@ -71,9 +84,11 @@ const MyRestaurant = () => {
   if (!restaurant) {
     return (
       <div className="min-h-screen bg-orange-50">
-        <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={null} />
+        <Navbar restaurant={null} />
         <div className="flex flex-col items-center justify-center min-h-[80vh] gap-4">
-          <p className="text-gray-400 text-sm">You haven't created a restaurant yet.</p>
+          <p className="text-gray-400 text-sm">
+            You haven't created a restaurant yet.
+          </p>
           <button
             onClick={() => navigate("/create-restaurant")}
             className="px-6 py-3 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition"
@@ -87,10 +102,9 @@ const MyRestaurant = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} cartCount={cartCount} />
+      <Navbar restaurant={restaurant} cartCount={cartCount} />
 
       <div className="max-w-2xl mx-auto px-4 py-12">
-
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
             <p className="text-red-500 text-sm">{error}</p>

@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { getMyOrders, getCart, getMyRestaurants } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const MyOrders = () => {
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
 
   const [restaurant, setRestaurant] = useState(null);
   const [cartCount, setCartCount] = useState(0);
@@ -74,12 +81,9 @@ const MyOrders = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar
-        isLoggedIn={isLoggedIn}
-        role={role}
-        restaurant={restaurant}
-        cartCount={cartCount}
-      />
+
+      {/* ✅ UPDATED NAVBAR */}
+      <Navbar restaurant={restaurant} cartCount={cartCount} />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-2xl font-medium mb-2">

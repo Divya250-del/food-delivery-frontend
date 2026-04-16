@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "../api/authApi";
+import { registerCustomer, registerRestaurantOwner } from "../api/authApi";
 
 function Signup() {
   const navigate = useNavigate();
 
+  const [role, setRole] = useState(""); // "customer" or "owner"
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -40,19 +41,74 @@ function Signup() {
     }
     try {
       setLoading(true);
-      const response = await registerUser(formData);
-      console.log("Signup Success:", response);
+      if (role === "customer") {
+        await registerCustomer(formData);
+      } else {
+        await registerRestaurantOwner(formData);
+      }
       navigate("/signin");
     } catch (error) {
       setErrors({
         apiError:
-          error?.error?.message || error?.message || "Something went wrong",
+          error?.response?.data?.message ||
+          error?.message ||
+          "Something went wrong",
       });
     } finally {
       setLoading(false);
     }
   };
 
+  // ── Step 1: Role Selection ──
+  if (!role) {
+    return (
+      <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8">
+          <h1 className="text-center text-2xl font-medium mb-1">
+            <span className="text-orange-500">Food</span>ie
+          </h1>
+          <p className="text-center text-gray-400 text-sm mb-8">
+            How do you want to join?
+          </p>
+
+          <div className="flex flex-col gap-4">
+            <button
+              onClick={() => setRole("customer")}
+              className="w-full py-4 border-2 border-gray-100 rounded-xl text-left px-5 hover:border-orange-300 hover:bg-orange-50 transition group"
+            >
+              <p className="text-sm font-medium group-hover:text-orange-500 transition">
+                🛒 Join as Customer
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                Browse restaurants and order food
+              </p>
+            </button>
+
+            <button
+              onClick={() => setRole("owner")}
+              className="w-full py-4 border-2 border-gray-100 rounded-xl text-left px-5 hover:border-orange-300 hover:bg-orange-50 transition group"
+            >
+              <p className="text-sm font-medium group-hover:text-orange-500 transition">
+                🍽 Join as Restaurant Owner
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                List your restaurant and manage menu
+              </p>
+            </button>
+          </div>
+
+          <p className="text-center text-sm text-gray-400 mt-6">
+            Already have an account?{" "}
+            <Link to="/signin" className="text-orange-500 hover:underline font-medium">
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Step 2: Registration Form ──
   return (
     <div className="min-h-screen bg-orange-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 w-full max-w-md p-8">
@@ -61,13 +117,20 @@ function Signup() {
         <h1 className="text-center text-2xl font-medium mb-1">
           <span className="text-orange-500">Food</span>ie
         </h1>
-        <p className="text-center text-gray-400 text-sm mb-8">
-          Create your account
+        <p className="text-center text-gray-400 text-sm mb-2">
+          {role === "customer" ? "🛒 Customer Account" : "🍽 Restaurant Owner Account"}
         </p>
+
+        {/* Back button */}
+        <button
+          onClick={() => setRole("")}
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-orange-500 transition mb-6 mx-auto"
+        >
+          ← Change role
+        </button>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
 
-          {/* Email */}
           <div>
             <input
               name="email"
@@ -75,16 +138,11 @@ function Signup() {
               value={formData.email}
               onChange={handleChange}
               className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                ${errors.email
-                  ? "border-red-400 bg-red-50 focus:border-red-400"
-                  : "border-gray-200 focus:border-orange-400"}`}
+                ${errors.email ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
             />
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-            )}
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
           </div>
 
-          {/* Full Name */}
           <div>
             <input
               name="name"
@@ -92,16 +150,11 @@ function Signup() {
               value={formData.name}
               onChange={handleChange}
               className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                ${errors.name
-                  ? "border-red-400 bg-red-50 focus:border-red-400"
-                  : "border-gray-200 focus:border-orange-400"}`}
+                ${errors.name ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
             />
-            {errors.name && (
-              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
-            )}
+            {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
           </div>
 
-          {/* Phone */}
           <div>
             <input
               name="phone"
@@ -109,16 +162,11 @@ function Signup() {
               value={formData.phone}
               onChange={handleChange}
               className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                ${errors.phone
-                  ? "border-red-400 bg-red-50 focus:border-red-400"
-                  : "border-gray-200 focus:border-orange-400"}`}
+                ${errors.phone ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
             />
-            {errors.phone && (
-              <p className="text-red-500 text-xs mt-1">{errors.phone}</p>
-            )}
+            {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
           </div>
 
-          {/* Password */}
           <div>
             <input
               type="password"
@@ -127,23 +175,17 @@ function Signup() {
               value={formData.password}
               onChange={handleChange}
               className={`w-full px-4 py-3 rounded-lg border text-sm outline-none transition
-                ${errors.password
-                  ? "border-red-400 bg-red-50 focus:border-red-400"
-                  : "border-gray-200 focus:border-orange-400"}`}
+                ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200 focus:border-orange-400"}`}
             />
-            {errors.password && (
-              <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-            )}
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
           </div>
 
-          {/* API Error */}
           {errors.apiError && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3">
               <p className="text-red-500 text-sm">{errors.apiError}</p>
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
@@ -152,14 +194,12 @@ function Signup() {
             {loading ? "Registering..." : "Register"}
           </button>
 
-          {/* Sign in link */}
           <p className="text-center text-sm text-gray-400 mt-2">
             Already have an account?{" "}
             <Link to="/signin" className="text-orange-500 hover:underline font-medium">
               Sign In
             </Link>
           </p>
-
         </form>
       </div>
     </div>

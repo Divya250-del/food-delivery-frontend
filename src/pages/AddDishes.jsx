@@ -6,10 +6,18 @@ import {
   getAllMenuItems,
   getRestaurantMenu,
 } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const AddDishes = () => {
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
   const [searchParams] = useSearchParams();
   const restaurantId = searchParams.get("restaurantId");
 
@@ -33,7 +41,7 @@ const AddDishes = () => {
         setLoadingMenu(true);
         const response = await getAllMenuItems();
         console.log("Menu Items →", response);
-        setMenuItems(response?.data?.data || []);
+        setMenuItems(response?.data || []);
       } catch (error) {
         console.error("Failed to load menu items →", error);
       } finally {
@@ -52,7 +60,7 @@ const AddDishes = () => {
         setLoadingDishes(true);
         const response = await getRestaurantMenu(restaurantId);
         console.log("Restaurant Dishes →", response);
-        setDishes(response?.data || response?.data?.data || []);
+        setDishes(response?.data || response?.data || []);
       } catch (error) {
         console.error("Failed to load restaurant dishes →", error);
       } finally {
@@ -122,7 +130,9 @@ const AddDishes = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} />
+
+      {/* ✅ UPDATED NAVBAR */}
+      <Navbar />
 
       <div className="max-w-2xl mx-auto px-4 py-16">
         <h1 className="text-2xl font-medium mb-1">
@@ -131,6 +141,8 @@ const AddDishes = () => {
         <p className="text-gray-400 text-sm mb-8">
           Add dishes to your restaurant menu
         </p>
+
+     
 
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
           <form onSubmit={handleAddDish} className="flex flex-col gap-4">

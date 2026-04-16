@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { getCart, getMyRestaurants,placeOrder} from "../api/authApi";
+import { getCart, getMyRestaurants, placeOrder } from "../api/authApi";
+import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const CartPage = () => {
-  const role = localStorage.getItem("role");
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ❌ REMOVE localStorage
+  // const role = localStorage.getItem("role");
+  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+  // ✅ USE CONTEXT
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
 
   const [restaurant, setRestaurant] = useState(null);
   const [cart, setCart] = useState(null);
@@ -12,7 +19,6 @@ const CartPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [placingOrder, setPlacingOrder] = useState(false);
-  
 
   useEffect(() => {
     const fetchNavbarRestaurant = async () => {
@@ -57,44 +63,43 @@ const CartPage = () => {
   }, [isLoggedIn]);
 
   const handlePlaceOrder = async () => {
-  try {
-    if (!cart?.restaurantId) {
-      alert("Restaurant not found for this cart");
-      return;
+    try {
+      if (!cart?.restaurantId) {
+        alert("Restaurant not found for this cart");
+        return;
+      }
+
+      setPlacingOrder(true);
+
+      const payload = {
+        restaurantId: Number(cart.restaurantId),
+      };
+
+      console.log("Place order payload →", payload);
+
+      const response = await placeOrder(payload);
+      console.log("Place order response →", response);
+
+      alert("Order placed successfully ✅");
+
+      setCart(null);
+      setItems([]);
+    } catch (error) {
+      console.error("Place order error →", error);
+
+      if (error?.response?.status === 401) {
+        alert("Please login first ❌");
+      } else {
+        alert(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to place order"
+        );
+      }
+    } finally {
+      setPlacingOrder(false);
     }
-
-    setPlacingOrder(true);
-
-    const payload = {
-      restaurantId: Number(cart.restaurantId),
-    };
-
-    console.log("Place order payload →", payload);
-
-    const response = await placeOrder(payload);
-    console.log("Place order response →", response);
-
-    alert("Order placed successfully ✅");
-
-    // cart page refresh
-    setCart(null);
-    setItems([]);
-  } catch (error) {
-    console.error("Place order error →", error);
-
-    if (error?.response?.status === 401) {
-      alert("Please login first ❌");
-    } else {
-      alert(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to place order"
-      );
-    }
-  } finally {
-    setPlacingOrder(false);
-  }
-};
+  };
 
   const cartCount = (items || []).reduce(
     (total, item) => total + (item.quantity || 0),
@@ -103,7 +108,9 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-orange-50">
-      <Navbar isLoggedIn={isLoggedIn} role={role} restaurant={restaurant} cartCount={cartCount} />
+
+      {/* ✅ UPDATED NAVBAR */}
+      <Navbar restaurant={restaurant} cartCount={cartCount} />
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-2xl font-medium mb-2">
