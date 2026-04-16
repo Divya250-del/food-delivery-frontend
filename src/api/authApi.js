@@ -77,3 +77,11 @@ export const placeOrder = (data) => {
 export const getMyOrders = () => {
   return API.get("/api/orders/user").then((res) => res.data);
 };
+
+
+export const intiatePayment = (orderId) => {
+  return API.post(
+      `/api/payments/initiate/${orderId}`
+    ).then((res) => res.data);
+};
+

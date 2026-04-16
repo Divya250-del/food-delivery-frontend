@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { getCart, getMyRestaurants, placeOrder } from "../api/authApi";
+import { getCart, getMyRestaurants, placeOrder,intiatePayment } from "../api/authApi";
 import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const CartPage = () => {
@@ -59,44 +59,69 @@ const CartPage = () => {
     }
   }, [isLoggedIn]);
 
-  const handlePlaceOrder = async () => {
-    try {
-      if (!cart?.restaurantId) {
-        alert("Restaurant not found for this cart");
-        return;
-      }
-
-      setPlacingOrder(true);
-
-      const payload = {
-        restaurantId: Number(cart.restaurantId),
-      };
-
-      console.log("Place order payload →", payload);
-
-      const response = await placeOrder(payload);
-      console.log("Place order response →", response);
-
-      alert("Order placed successfully ✅");
-
-      setCart(null);
-      setItems([]);
-    } catch (error) {
-      console.error("Place order error →", error);
-
-      if (error?.response?.status === 401) {
-        alert("Please login first ❌");
-      } else {
-        alert(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Failed to place order"
-        );
-      }
-    } finally {
-      setPlacingOrder(false);
+ const handlePlaceOrder = async () => {
+  try {
+    if (!cart?.restaurantId) {
+      alert("Restaurant not found for this cart");
+      return;
     }
-  };
+
+    setPlacingOrder(true);
+
+    const payload = {
+      restaurantId: Number(cart.restaurantId),
+    };
+
+    // 1️⃣ Place Order
+    const orderResponse = await placeOrder(payload);
+    console.log("Order response →", orderResponse);
+
+    const orderId = orderResponse.data.orderId; // ⚠️ adjust based on your API
+
+    // 2️⃣ Initiate Payment
+    const paymentRes = await intiatePayment(orderId);
+   
+
+    const { orderId: razorpayOrderId, keyId } = paymentRes.data;
+
+    // 3️⃣ Open Razorpay
+    const options = {
+      key: keyId,
+      amount: orderResponse.data.totalAmount, // ⚠️ must match backend
+      currency: "INR",
+      name: "Food Delivery",
+      description: "Order Payment",
+      order_id: razorpayOrderId,
+
+      handler: function (response) {
+        console.log("Payment success:", response);
+        alert("Payment Successful ✅");
+
+        // ✅ Clear cart ONLY AFTER SUCCESS
+        setCart(null);
+        setItems([]);
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+  } catch (error) {
+    console.error("Error →", error);
+
+    if (error?.response?.status === 401) {
+      alert("Please login first ❌");
+    } else {
+      alert(
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to process order"
+      );
+    }
+  } finally {
+    setPlacingOrder(false);
+  }
+};
 
   const cartCount = (items || []).reduce(
     (total, item) => total + (item.quantity || 0),
