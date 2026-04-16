@@ -7,9 +7,6 @@ import { useAuth } from "../context/AuthContext"; // ✅ NEW
 const CreateRestaurant = () => {
   const navigate = useNavigate();
 
-  // ❌ REMOVE localStorage
-  // const role = localStorage.getItem("role");
-  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   // ✅ USE CONTEXT
   const { user } = useAuth();

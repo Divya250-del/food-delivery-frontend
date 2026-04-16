@@ -10,9 +10,6 @@ import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const AddDishes = () => {
 
-  // ❌ REMOVE localStorage
-  // const role = localStorage.getItem("role");
-  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   // ✅ USE CONTEXT
   const { user } = useAuth();

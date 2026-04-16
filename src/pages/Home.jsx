@@ -6,9 +6,6 @@ import { useAuth } from "../context/AuthContext"; // ✅ NEW
 
 const Home = () => {
 
-  // ❌ REMOVE localStorage
-  // const role = localStorage.getItem("role");
-  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   const { user } = useAuth(); // ✅ NEW
   const isLoggedIn = !!user;  // ✅ NEW
