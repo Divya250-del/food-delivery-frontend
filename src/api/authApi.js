@@ -58,6 +58,10 @@ export const getRestaurantMenu = (restaurantId) => {
   return API.get(`/api/menu/restaurant/${restaurantId}`).then((res) => res.data);
 };
 
+export const getRestaurantsByDish = (dishId) => {
+  return API.get(`/api/menu/${dishId}/restaurants`).then((res) => res.data);
+};
+
 export const addToCart = (data) => {
   return API.post("/api/cart/add", data).then((res) => res.data);
 };

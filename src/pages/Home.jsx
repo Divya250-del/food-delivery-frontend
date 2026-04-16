@@ -103,7 +103,7 @@ const Home = () => {
   };
 
   const handleDishClick = (dish) => {
-    navigate(`/restaurants?dish=${dish.name}`);
+    navigate(`/restaurants?dishId=${dish.id}`);
   };
 
   return (

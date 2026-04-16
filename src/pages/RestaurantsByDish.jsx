@@ -1,7 +1,9 @@
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { useAuth } from "../context/AuthContext"; // ✅ NEW
+import { useAuth } from "../context/AuthContext"; 
+import { useEffect, useState } from "react";
+import { getRestaurantsByDish } from "../api/authApi";
 
 const RESTAURANTS = [
   { id: 1, name: "Pizza Palace", cuisine: "Italian", rating: "4.5★", delivery: "25 min", emoji: "🍕", dishes: ["Pizza", "Sandwich"] },
@@ -17,21 +19,36 @@ const RESTAURANTS = [
 const RestaurantsByDish = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // ❌ REMOVE localStorage
-  // const role = localStorage.getItem("role");
-  // const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
   // ✅ USE CONTEXT
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
-  const dish = searchParams.get("dish");
+  const dishId = searchParams.get("dishId"); // ✅ IMPORTANT CHANGE
 
-  const filtered = dish
-    ? RESTAURANTS.filter((r) => r.dishes.includes(dish))
-    : RESTAURANTS;
+  useEffect(() => {
+  const fetchRestaurants = async () => {
+    try {
+      setLoading(true);
 
+      if (dishId) {
+        const res = await getRestaurantsByDish(dishId);
+        setRestaurants(res?.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching restaurants →", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchRestaurants();
+}, [dishId]);
+
+const filtered = restaurants;
   return (
     <div className="min-h-screen bg-orange-50">
 
@@ -50,12 +67,8 @@ const RestaurantsByDish = () => {
         </div>
 
         <h1 className="text-2xl font-medium mb-1">
-          {dish ? (
-            <>Restaurants serving <span className="text-orange-500">{dish}</span></>
-          ) : (
-            <>All <span className="text-orange-500">Restaurants</span></>
-          )}
-        </h1>
+  Restaurants
+</h1>
         <p className="text-gray-400 text-sm mb-8">
           {filtered.length} restaurant{filtered.length !== 1 ? "s" : ""} found
         </p>
@@ -64,7 +77,7 @@ const RestaurantsByDish = () => {
         {filtered.length === 0 && (
           <div className="text-center py-20">
             <p className="text-5xl mb-4">🍽</p>
-            <p className="text-gray-400 text-sm">No restaurants found for "{dish}"</p>
+            <p className="text-gray-400 text-sm">No restaurants found</p>
             <button
               onClick={() => navigate("/")}
               className="mt-4 px-5 py-2 bg-orange-500 text-white rounded-lg text-sm hover:bg-orange-600 transition"
@@ -95,8 +108,11 @@ const RestaurantsByDish = () => {
               </div>
               <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
                 <p className="text-xs text-gray-400">🕐 {r.delivery}</p>
-                <button className="text-xs text-orange-500 font-medium hover:underline">
-                  View Menu →
+                 <button
+                onClick={() => navigate(`/restaurant/${r.id}/menu`)}
+                className="text-xs text-orange-500 font-medium hover:underline"
+                >
+                View Menu →
                 </button>
               </div>
             </div>
