@@ -59,70 +59,51 @@ const CartPage = () => {
     }
   }, [isLoggedIn]);
 
- const handlePlaceOrder = async () => {
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+
+    document.body.appendChild(script);
+  });
+};
+
+const handlePlaceOrder = async () => {
   try {
     if (!cart?.restaurantId) {
-      alert("Restaurant not found for this cart");
+      alert("Restaurant not found");
       return;
     }
 
     setPlacingOrder(true);
 
-    const payload = {
+    const orderResponse = await placeOrder({
       restaurantId: Number(cart.restaurantId),
-    };
+    });
 
-    // 1️⃣ Place Order
-    const orderResponse = await placeOrder(payload);
-    console.log("Order response →", orderResponse);
+    const orderId = orderResponse?.data?.orderId;
 
-    const orderId = orderResponse.data.orderId; // ⚠️ adjust based on your API
+    if (!orderId) {
+      throw new Error("Order ID missing");
+    }
 
-    // 2️⃣ Initiate Payment
-    const paymentRes = await intiatePayment(orderId);
-   
-
-    const { orderId: razorpayOrderId, keyId } = paymentRes.data;
-
-    // 3️⃣ Open Razorpay
-    const options = {
-      key: keyId,
-      amount: orderResponse.data.totalAmount, // ⚠️ must match backend
-      currency: "INR",
-      name: "Food Delivery",
-      description: "Order Payment",
-      order_id: razorpayOrderId,
-
-      handler: function (response) {
-        console.log("Payment success:", response);
-        alert("Payment Successful ✅");
-
-        // ✅ Clear cart ONLY AFTER SUCCESS
-        setCart(null);
-        setItems([]);
-      },
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+    // ✅ REDIRECT to payment page
+    window.location.href = `/payment/${orderId}`;
 
   } catch (error) {
-    console.error("Error →", error);
-
-    if (error?.response?.status === 401) {
-      alert("Please login first ❌");
-    } else {
-      alert(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Failed to process order"
-      );
-    }
+    console.error(error);
+    alert("Failed to place order");
   } finally {
     setPlacingOrder(false);
   }
 };
-
   const cartCount = (items || []).reduce(
     (total, item) => total + (item.quantity || 0),
     0
