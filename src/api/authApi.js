@@ -85,3 +85,6 @@ export const intiatePayment = (orderId) => {
     ).then((res) => res.data);
 };
 
+export const paymentStatus = (orderId) => {
+  return API.get(`/api/orders/${orderId}`).then((res) => res.data);
+};
