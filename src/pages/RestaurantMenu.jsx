@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 import {
   getRestaurantMenu,
   addToCart,
@@ -17,6 +18,7 @@ const RestaurantMenu = () => {
   const isLoggedIn = !!user;
 
   const { restaurantId } = useParams();
+  const navigate = useNavigate();
 
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -143,6 +145,16 @@ const RestaurantMenu = () => {
         restaurant={myrestaurant}
         cartCount={cartCount}
       />
+
+            {/* ✅ ADD THIS */}
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+        <button
+          onClick={() => navigate("/")}
+          className="text-sm text-gray-500 hover:text-orange-500"
+        >
+          ← Back to Home
+        </button>
+      </div>
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <h1 className="text-2xl font-medium mb-2">

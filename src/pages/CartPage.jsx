@@ -46,7 +46,7 @@ const CartPage = () => {
         setItems(cartData?.items || []);
       } catch (err) {
         console.error("Cart fetch error →", err);
-        setError("Failed to load cart");
+        setError("Cart is Empty");
       } finally {
         setLoading(false);
       }

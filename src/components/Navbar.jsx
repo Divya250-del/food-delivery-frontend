@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { logout } from "../api/authApi";
 
 const Navbar = ({ restaurant, cartCount = 0 }) => {
-  const { user, loading, setUser } = useAuth(); // ✅ added setUser
+  const { user, loading, setUser } = useAuth();
 
   if (loading) return null;
 
@@ -13,87 +13,97 @@ const Navbar = ({ restaurant, cartCount = 0 }) => {
 
   const handleLogout = async () => {
     try {
-      await logout();        // ✅ call backend
-      setUser(null);         // ✅ clear frontend state
-      window.location.href = "/"; // redirect
+      await logout();
+      setUser(null);
+      window.location.href = "/";
     } catch (err) {
       console.error("Logout failed →", err);
     }
   };
 
   return (
-    <div className="flex justify-between items-center px-10 py-4 bg-white border-b border-gray-100 sticky top-0 z-10">
-      <Link to="/">
-        <h1 className="text-2xl font-medium">
-          <span className="text-orange-500">Food</span>ie
-        </h1>
-      </Link>
+    <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm">
 
-      <div className="flex gap-3 items-center">
-        {!isLoggedIn ? (
-          <>
-            <Link to="/signin">
-              <button className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
-                Sign In
-              </button>
-            </Link>
+      <div className="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
 
-            <Link to="/signup">
-              <button className="px-5 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
-                Sign Up
-              </button>
-            </Link>
-          </>
-        ) : (
-          <>
-            {/* CUSTOMER ONLY */}
-            {isCustomer && (
-              <Link to="/cart">
-                <button className="relative px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
-                  🛒 Cart
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-2 min-w-[22px] h-[22px] px-1 flex items-center justify-center bg-orange-500 text-white text-[11px] rounded-full font-medium">
-                      {cartCount > 99 ? "99+" : cartCount}
-                    </span>
-                  )}
+        {/* LOGO */}
+        <Link to="/" className="flex items-center gap-2">
+          <span className="text-2xl">🍔</span>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            <span className="text-orange-500">Food</span>ie
+          </h1>
+        </Link>
+
+        {/* RIGHT SIDE */}
+        <div className="flex items-center gap-3">
+
+          {!isLoggedIn ? (
+            <>
+              <Link to="/signin">
+                <button className="px-4 py-2 rounded-lg text-sm border border-gray-200 hover:bg-gray-50 transition">
+                  Sign In
                 </button>
               </Link>
-            )}
 
-            <Link to="/my-orders">
-              <button className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
-                My Orders
+              <Link to="/signup">
+                <button className="px-5 py-2 rounded-lg text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
+                  Sign Up
+                </button>
+              </Link>
+            </>
+          ) : (
+            <>
+              {/* CUSTOMER */}
+              {isCustomer && (
+                <Link to="/cart">
+                  <button className="relative flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition">
+                    🛒
+                    <span className="text-sm">Cart</span>
+
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 min-w-[20px] h-[20px] px-1 flex items-center justify-center bg-orange-500 text-white text-[10px] rounded-full font-medium shadow">
+                        {cartCount > 99 ? "99+" : cartCount}
+                      </span>
+                    )}
+                  </button>
+                </Link>
+              )}
+
+              <Link to="/my-orders">
+                <button className="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-50 transition">
+                  My Orders
+                </button>
+              </Link>
+
+              {/* OWNER */}
+              {isOwner && (
+                <>
+                  {restaurant ? (
+                    <Link to="/my-restaurant">
+                      <button className="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-gray-50 transition">
+                        My Restaurant
+                      </button>
+                    </Link>
+                  ) : (
+                    <Link to="/create-restaurant">
+                      <button className="px-5 py-2 rounded-lg text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 transition shadow-sm">
+                        + Create
+                      </button>
+                    </Link>
+                  )}
+                </>
+              )}
+
+              {/* LOGOUT */}
+              <button
+                onClick={handleLogout}
+                className="px-4 py-2 rounded-lg border border-gray-200 text-sm hover:bg-red-50 hover:text-red-500 transition"
+              >
+                Logout
               </button>
-            </Link>
-
-            {/* OWNER ONLY */}
-            {isOwner && (
-              <>
-                {restaurant ? (
-                  <Link to="/my-restaurant">
-                    <button className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">
-                      My Restaurant
-                    </button>
-                  </Link>
-                ) : (
-                  <Link to="/create-restaurant">
-                    <button className="px-5 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600 transition">
-                      + Create Restaurant
-                    </button>
-                  </Link>
-                )}
-              </>
-            )}
-
-            {/* ✅ FIXED LOGOUT */}
-            <button
-              onClick={handleLogout}
-              className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition"
-            >
-              Logout
-            </button>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
