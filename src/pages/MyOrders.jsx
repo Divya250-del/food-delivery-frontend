@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { getMyOrders, getCart, getMyRestaurants } from "../api/authApi";
-import { useAuth } from "../context/AuthContext"; // ✅ NEW
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const MyOrders = () => {
 
@@ -15,6 +16,7 @@ const MyOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const fetchCartCount = async () => {
     try {
@@ -81,6 +83,16 @@ const MyOrders = () => {
 
       {/* ✅ UPDATED NAVBAR */}
       <Navbar restaurant={restaurant} cartCount={cartCount} />
+
+      <div className="max-w-4xl mx-auto px-4 pt-6">
+    <button
+      onClick={() => navigate("/")}
+      className="text-sm text-gray-500 hover:text-orange-500"
+    >
+      ← Back to Home
+    </button>
+  </div>
+
 
       <div className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-2xl font-medium mb-2">

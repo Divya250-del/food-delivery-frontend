@@ -73,7 +73,7 @@ const RestaurantMenu = () => {
         setMenu(response?.data || []);
       } catch (err) {
         console.error("Failed to load menu →", err);
-        setError("Failed to load menu");
+        setError("No dishes found for this restaurant");
       } finally {
         setLoading(false);
       }

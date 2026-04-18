@@ -28,10 +28,6 @@ const Home = () => {
 
   const [cartCount, setCartCount] = useState(0);
 
-  // =========================
-  // API CALLS
-  // =========================
-
   const fetchAllDishes = async () => {
     if (!isLoggedIn) return;
     try {
@@ -133,11 +129,9 @@ const Home = () => {
           </div>
         </div>
 
-        {/* 🔥 UPDATED JUNK FOOD IMAGE */}
         <div className="hidden md:block w-[420px]">
           <img
             src="https://images.unsplash.com/photo-1513104890138-7c749659a591"
-            alt="pizza fries burger"
             className="rounded-2xl shadow-lg"
           />
         </div>
@@ -150,52 +144,20 @@ const Home = () => {
         </h2>
 
         <div className="grid md:grid-cols-3 gap-10 px-10 max-w-6xl mx-auto">
-
-          {/* STEP 1 */}
-          <div className="bg-white rounded-2xl shadow-md p-8 text-center border-t-4 border-orange-500 relative">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png"
-              className="w-20 mx-auto mb-4"
-            />
+          <div className="bg-white rounded-2xl shadow-md p-8 text-center border-t-4 border-orange-500">
+            <img src="https://cdn-icons-png.flaticon.com/512/3075/3075977.png" className="w-20 mx-auto mb-4"/>
             <h3 className="font-semibold">Browse Restaurants</h3>
-            <p className="text-sm text-gray-400 mt-2">
-              Explore restaurants near you
-            </p>
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-orange-500 text-white w-10 h-10 flex items-center justify-center rounded-full">
-              1
-            </div>
           </div>
 
-          {/* STEP 2 */}
-          <div className="bg-white rounded-2xl shadow-md p-8 text-center border-t-4 border-orange-500 relative">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png"
-              className="w-20 mx-auto mb-4"
-            />
+          <div className="bg-white rounded-2xl shadow-md p-8 text-center border-t-4 border-orange-500">
+            <img src="https://cdn-icons-png.flaticon.com/512/1170/1170678.png" className="w-20 mx-auto mb-4"/>
             <h3 className="font-semibold">Add to Cart</h3>
-            <p className="text-sm text-gray-400 mt-2">
-              Select and customize your order
-            </p>
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-orange-500 text-white w-10 h-10 flex items-center justify-center rounded-full">
-              2
-            </div>
           </div>
 
-          {/* STEP 3 */}
-          <div className="bg-white rounded-2xl shadow-md p-8 text-center border-t-4 border-orange-500 relative">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png"
-              className="w-20 mx-auto mb-4"
-            />
+          <div className="bg-white rounded-2xl shadow-md p-8 text-center border-t-4 border-orange-500">
+            <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" className="w-20 mx-auto mb-4"/>
             <h3 className="font-semibold">Order Placed</h3>
-            <p className="text-sm text-gray-400 mt-2">
-              We prepare and confirm your order
-            </p>
-            <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-orange-500 text-white w-10 h-10 flex items-center justify-center rounded-full">
-              3
-            </div>
           </div>
-
         </div>
       </div>
 
@@ -203,49 +165,70 @@ const Home = () => {
       {isLoggedIn && (
         <>
           {/* DISHES */}
-          <div className="px-10 py-12">
-            <h2 className="text-xl mb-8">What's on your mind?</h2>
+          <div className="px-10 py-12 bg-gray-50">
+            <h2 className="text-2xl font-semibold mb-10">
+              What's on your mind?
+            </h2>
 
-            <div className="grid grid-cols-5 gap-6">
+            <div className="grid grid-cols-5 gap-10">
               {allDishes.map((dish) => (
                 <div
                   key={dish.id}
                   onClick={() =>
                     navigate(`/restaurants?dishId=${dish.id}`)
                   }
-                  className="flex flex-col items-center gap-3 cursor-pointer"
+                  className="flex flex-col items-center cursor-pointer group"
                 >
-                  <div className="w-24 h-24 rounded-full bg-orange-50 flex items-center justify-center text-3xl">
-                    {dish.isVeg ? "🟢" : "🔴"}
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition">
+                    🍜
                   </div>
-                  <p className="text-sm font-medium">{dish.name}</p>
+
+                  <p className="mt-3 text-sm font-medium text-gray-700 group-hover:text-orange-500">
+                    {dish.name}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* RESTAURANTS */}
-          <div ref={restaurantsRef} className="px-10 py-12">
-            <h2 className="text-xl mb-8">Restaurants</h2>
+          <div ref={restaurantsRef} className="px-10 py-12 bg-white">
+            <h2 className="text-2xl font-semibold mb-10">
+              Restaurants Near You
+            </h2>
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-10">
               {restaurants.map((r) => (
                 <div
                   key={r.id}
-                  className="border rounded-2xl p-5 hover:shadow-md cursor-pointer"
+                  className="rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl transition cursor-pointer overflow-hidden group"
                 >
-                  <div className="h-28 bg-orange-50 rounded-xl flex items-center justify-center text-4xl mb-4">
+                  {/* HEADER */}
+                  <div className="h-28 bg-gradient-to-r from-orange-100 to-orange-200 flex items-center justify-center text-4xl">
                     🍽
                   </div>
-                  <p className="font-medium">{r.name}</p>
-                  <button
-                    onClick={() =>
-                      navigate(`/restaurant/${r.id}/menu`)
-                    }
-                    className="text-orange-500 text-sm mt-2"
-                  >
-                    View Menu →
-                  </button>
+
+                  {/* CONTENT */}
+                  <div className="p-5">
+                    <div className="flex justify-between items-center">
+                      <p className="font-semibold text-gray-800">
+                        {r.name}
+                      </p>
+
+                      <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded-full">
+                        Open
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        navigate(`/restaurant/${r.id}/menu`)
+                      }
+                      className="mt-4 text-orange-500 text-sm font-medium group-hover:underline"
+                    >
+                      View Menu →
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

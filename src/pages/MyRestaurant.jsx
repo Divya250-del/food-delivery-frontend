@@ -101,6 +101,16 @@ const MyRestaurant = () => {
     <div className="min-h-screen bg-orange-50">
       <Navbar restaurant={restaurant} cartCount={cartCount} />
 
+        <div className="max-w-2xl mx-auto px-4 pt-6">
+    <button
+      onClick={() => navigate("/")}
+      className="text-sm text-gray-500 hover:text-orange-500"
+    >
+      ← Back to Home
+    </button>
+  </div>
+
+
       <div className="max-w-2xl mx-auto px-4 py-12">
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-6">
